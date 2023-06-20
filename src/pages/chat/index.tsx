@@ -114,7 +114,7 @@ function ChatPage() {
       })
       setChatDataInfo(selectChatId, assistantMessageId, {
         status: 'error',
-		text: `\`\`\`json
+        text: `\`\`\`json
 ${JSON.stringify(response, null, 4)}
 \`\`\`
 `
@@ -253,8 +253,8 @@ ${JSON.stringify(response, null, 4)}
                   onCancel={() => {
                     // ==== 无操作 ====
                   }}
-                  okText="Yes"
-                  cancelText="No"
+                  okText="是"
+                  cancelText="否"
                 >
                   <DeleteOutlined />
                 </Popconfirm>
@@ -308,8 +308,8 @@ ${JSON.stringify(response, null, 4)}
                 onCancel={() => {
                   // ==== 无操作 ====
                 }}
-                okText="Yes"
-                cancelText="No"
+                okText="是"
+                cancelText="否"
               >
                 <Button block danger type="dashed" ghost>
                   清除所有对话
@@ -338,7 +338,7 @@ ${JSON.stringify(response, null, 4)}
                     status={item.status}
                     content={item.text}
                     time={item.dateTime}
-					model={item.requestOptions.options?.model}
+                    model={item.requestOptions.options?.model}
                     onDelChatMessage={() => {
                       delChatMessage(selectChatId, item.id)
                     }}

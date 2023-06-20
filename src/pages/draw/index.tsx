@@ -116,8 +116,8 @@ function DrawPage() {
                   onConfirm={() => {
                     clearhistoryDrawImages()
                   }}
-                  okText="Yes"
-                  cancelText="No"
+                  okText="是"
+                  cancelText="否"
                 >
                   <ClearOutlined className={styles.drawPage_mydraw_header_icon} />
                 </Popconfirm>
