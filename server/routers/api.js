@@ -329,14 +329,27 @@ router.post('/chat/completions', async (req, res) => {
     // 提前从 req.body.options 中取出 model 的值
     const model = req.body.options?.model;
 
+    let max_tokens_value;
+
+    if (model.includes('gpt-3.5-turbo-16k')) {
+        max_tokens_value = 8000;
+    } else if (model.includes('gpt-3.5-turbo')) {
+        max_tokens_value = 2000;
+    } else if (model.includes('gpt-4')) {
+        max_tokens_value = 4000;
+    } else {
+        max_tokens_value = 2000;
+    }
+
     const options = {
         frequency_penalty: 0,
         model,
         presence_penalty: 0,
         temperature: 0.8,
-        max_tokens: model.includes('gpt-4') ? 4000 : 8000,
         ...req.body.options,
+        max_tokens: max_tokens_value
     };
+
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const todayTime = today.getTime();
@@ -380,7 +393,6 @@ router.post('/chat/completions', async (req, res) => {
         .reverse();
     // 确保历史消息和新的用户消息不超过限定 token
 
-    const max_tokens = options.model.includes('gpt-4') ? 4000 : 8000;
     let userMessage = prompt;
     let userMessageTokens = new gpt_tokens_1.GPTTokens({
         model: options.model,
@@ -391,12 +403,12 @@ router.post('/chat/completions', async (req, res) => {
     });
 
     // 如果用户消息的token数量超过最大限制，进行截断处理
-    if (userMessageTokens.usedTokens > max_tokens) {
+    if (userMessageTokens.usedTokens > max_tokens_value) {
         let truncatedUserMessage = userMessage;
         let truncatedUserMessageTokens;
 
         // 截取用户消息，每次截取后检查token数量
-        while (userMessageTokens.usedTokens > max_tokens) {
+        while (userMessageTokens.usedTokens > max_tokens_value) {
             truncatedUserMessage = truncatedUserMessage.slice(0, truncatedUserMessage.length - 100);
             truncatedUserMessageTokens = new gpt_tokens_1.GPTTokens({
                 model: options.model,
@@ -411,7 +423,7 @@ router.post('/chat/completions', async (req, res) => {
         userMessage = truncatedUserMessage;
     }
     // 只有在用户消息的token数量未超过最大限制时，才处理历史消息
-    if (userMessageTokens.usedTokens <= max_tokens) {
+    if (userMessageTokens.usedTokens <= max_tokens_value) {
         const historyMessageCount = await models_1.configModel.getConfig('history_message_count');
         const getMessagesData = await models_1.messageModel.getMessages({ page: 0, page_size: Number(historyMessageCount) }, {
             parent_message_id: parentMessageId
@@ -435,7 +447,7 @@ router.post('/chat/completions', async (req, res) => {
         let total_tokens = historyMessagesTokens.usedTokens;
         total_tokens += userMessageTokens.usedTokens;
 
-        while (total_tokens > max_tokens && historyMessages.length > 0) {
+        while (total_tokens > max_tokens_value && historyMessages.length > 0) {
             // 移除最早的消息
             const removedMessage = historyMessages.shift();
             // 更新token总数
