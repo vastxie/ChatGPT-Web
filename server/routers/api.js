@@ -493,7 +493,7 @@ router.post('/chat/completions', async (req, res) => {
         body: JSON.stringify({
             ...options,
             messages,
-            max_tokens,
+            max_tokens: max_tokens_value,
             stream: true
         }),
         headers: {
