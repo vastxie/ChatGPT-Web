@@ -1,3 +1,11 @@
 {
-    "rewrites": [{ "source": "/:path*", "destination": "/index.html" }]
+    "env": {
+        "VITE_APP_REQUEST_HOST": "@vite_app_request_host"
+    },
+    "rewrites": [
+        {
+            "source": "/:path*",
+            "destination": "/index.html"
+        }
+    ]
 }
