@@ -98,10 +98,7 @@ function AdminPage() {
                 textAlign: 'center',
                 paddingBlockStart: 12
               }}
-            >
-              <div>© 2023 Made with love</div>
-              <div>by Chatgpt</div>
-            </div>
+            />
           )
         }}
         menuProps={{
