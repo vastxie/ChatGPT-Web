@@ -19,8 +19,8 @@
     "start": "node server/index.js",
     "build": "vite build",
     "preview": "vite preview",
-    "eslint": "eslint \"src/**/*.{ts,tsx}\" \"server/**/*.{ts,tsx}\"",
-    "eslint:fix": "eslint \"src/**/*.{ts,tsx}\" \"server/**/*.{ts,tsx}\" --fix",
+    "eslint": "eslint \"src/**/*.{ts,tsx}\"",
+    "eslint:fix": "eslint \"src/**/*.{ts,tsx}\" --fix",
     "prepare": "husky install"
   },
   "dependencies": {
@@ -33,7 +33,7 @@
     "cors": "^2.8.5",
     "express": "^4.18.2",
     "express-async-errors": "^3.1.1",
-    "gpt-tokens": "^1.0.7",
+    "gpt-tokens": "^1.0.8",
     "highlight.js": "^11.7.0",
     "html2canvas": "^1.4.1",
     "ioredis": "^5.3.2",
