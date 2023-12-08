@@ -14,7 +14,7 @@ type Props = {
 function Global(props: Props) {
   const { models, config, configModal, changeConfig, setConfigModal, notifications } = configStore()
   const { chats, addChat, changeSelectChatId } = chatStore()
-  const { token, loginModal, setLoginModal } = userStore()
+  const { loginModal, setLoginModal } = userStore()
 
   const openNotification = ({
     key,
@@ -42,7 +42,7 @@ function Global(props: Props) {
   }
 
   function delay(ms: number) {
-	return new Promise(resolve => setTimeout(resolve, ms));
+    return new Promise(resolve => setTimeout(resolve, ms));
   }
 
   async function onOpenNotifications() {
@@ -52,7 +52,7 @@ function Global(props: Props) {
         title: item.title,
         content: item.content
       })
-	  await delay(500)
+      await delay(500)
     }
   }
 
@@ -63,12 +63,12 @@ function Global(props: Props) {
       const id = chats[0].id
       changeSelectChatId(id)
     }
-	configAsync.fetchConfig()
+    configAsync.fetchConfig()
   }, [])
 
-  useLayoutEffect(()=>{
-	onOpenNotifications();
-  },[notification])
+  useLayoutEffect(() => {
+    onOpenNotifications();
+  }, [notification])
 
   return (
     <>

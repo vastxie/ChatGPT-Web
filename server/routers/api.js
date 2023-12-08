@@ -347,7 +347,9 @@ router.post('/chat/completions', async (req, res) => {
     const options = {
         model,
         ...req.body.options,
+        max_tokens: max_tokens_value
     };
+
 
     const today = new Date();
     today.setHours(0, 0, 0, 0);

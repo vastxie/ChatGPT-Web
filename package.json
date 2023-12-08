@@ -12,6 +12,11 @@
     "open",
     "react"
   ],
+  "settings": {
+  "react": {
+    "version": "detect"
+  }
+},
   "scripts": {
     "tsc": "tsc -p tsconfig.node.json",
     "dev": "vite",
