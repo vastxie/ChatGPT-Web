@@ -1,30 +1,13 @@
 import { getAdminTokens, delAdminToken, putAdminToken, postAdminToken, postAdminTokenCheck } from '@/request/adminApi';
-import { TokenInfo } from '@/types/admin';
+import { TokenInfo, ConfigInfo } from '@/types/admin';
 import { ActionType, ModalForm, ProColumns, ProFormGroup, ProFormRadio, ProFormSelect, ProFormText } from '@ant-design/pro-components';
 import { ProTable } from '@ant-design/pro-components';
 import { Button, Form, Tag, message } from 'antd';
-import { useRef, useState } from 'react';
-
-const modelsAll = [
-    {
-        label: 'gpt-4',
-        value: 'gpt-4'
-    },
-    {
-        label: 'gpt-3.5-turbo',
-        value: 'gpt-3.5-turbo'
-    },
-    {
-        label: 'gpt-3.5-turbo-16k',
-        value: 'gpt-3.5-turbo-16k'
-    },
-    {
-        label: 'DALL·E绘画',
-        value: 'dall-e'
-    }
-]
+import { useEffect, useRef, useState } from 'react';
+import { configStore } from '@/store'
 
 function TokenPage() {
+    const models = configStore(state => state.models);
 
     const tableActionRef = useRef<ActionType>();
     const [form] = Form.useForm<TokenInfo & {
@@ -257,7 +240,7 @@ function TokenPage() {
                 <ProFormSelect
                     name="models"
                     label="适用模型"
-                    request={async () => modelsAll}
+                    request={async () => models}
                     fieldProps={{
                         mode: 'multiple',
                     }}

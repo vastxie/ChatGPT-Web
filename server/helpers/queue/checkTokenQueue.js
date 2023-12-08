@@ -21,12 +21,6 @@ CheckTokenQueue.process(async (job) => {
 	const limit = Number(check.hard_limit_usd);
 	const usage = Number(check.total_usage);
 	console.log(limit, usage);
-	if (check.status) {
-		status = 0;
-	}
-	if (limit <= usage) {
-		status = 0;
-	}
 	await models_1.tokenModel.editToken(id, {
 		limit,
 		usage,

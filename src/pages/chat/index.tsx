@@ -1,11 +1,10 @@
 import { CommentOutlined, DeleteOutlined } from '@ant-design/icons'
 import { Button, Modal, Popconfirm, Space, Tabs, Select, message } from 'antd'
-import { useLayoutEffect, useMemo, useRef, useState } from 'react'
-
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import styles from './index.module.less'
 import { chatStore, configStore, userStore } from '@/store'
-import RoleNetwork from './components/RoleNetwork'
-import RoleLocal from './components/RoleLocal'
+//import RoleNetwork from './components/RoleNetwork'
+//import RoleLocal from './components/RoleLocal'
 import AllInput from './components/AllInput'
 import ChatMessage from './components/ChatMessage'
 import { RequestChatOptions } from '@/types'
@@ -15,12 +14,22 @@ import { filterObjectNull, formatTime, generateUUID, handleChatData } from '@/ut
 import { useScroll } from '@/hooks/useScroll'
 import useDocumentResize from '@/hooks/useDocumentResize'
 import Layout from '@/components/Layout'
+import { postImagesGenerations } from '@/request/api'
 
 function ChatPage() {
   const scrollRef = useRef<HTMLDivElement>(null)
   const { scrollToBottomIfAtBottom, scrollToBottom } = useScroll(scrollRef.current)
   const { token, setLoginModal } = userStore()
   const { config, models, changeConfig, setConfigModal } = configStore()
+  useEffect(() => {
+    // 当models数组有数据且config.model为空或不在models中时，设置默认值
+    if (models.length > 0 && (!config.model || !models.some(m => m.value === config.model))) {
+      changeConfig({
+        ...config,
+        model: models[0].value
+      });
+    }
+  }, [models, config, changeConfig]);
   const {
     chats,
     addChat,
@@ -37,9 +46,9 @@ function ChatPage() {
   const bodyResize = useDocumentResize()
 
   // 角色预设
-  const [roleConfigModal, setRoleConfigModal] = useState({
-    open: false
-  })
+  //const [roleConfigModal, setRoleConfigModal] = useState({
+  //open: false
+  //})
 
   useLayoutEffect(() => {
     if (scrollRef) {
@@ -213,12 +222,42 @@ ${JSON.stringify(response, null, 4)}
     const controller = new AbortController()
     const signal = controller.signal
     setFetchController(controller)
-    serverChatCompletions({
-      requestOptions,
-      signal,
-      userMessageId,
-      assistantMessageId
-    })
+    if (config.model === 'dall-e-3') {
+      // 调用绘画API
+      postImagesGenerations(requestOptions, {}, { timeout: 0 })
+        .then((res) => {
+          // 处理绘画API的响应
+          if (res.code === 0 && res.data && res.data.length > 0) {
+            const imageUrl = res.data[0].url; // 假设返回的是一个包含URL的数组
+            setChatDataInfo(selectChatId, userMessageId, { status: 'pass' });
+            setChatDataInfo(selectChatId, assistantMessageId, {
+              text: `<img src="${imageUrl}" alt="Generated Image" style="height: 40vh;" />`, // 将图片嵌入到对话框中，高度为视窗的40%
+              dateTime: formatTime(),
+              status: 'pass',
+
+            });
+          } else {
+            // 处理错误或空响应
+            setChatDataInfo(selectChatId, assistantMessageId, {
+              text: '绘画失败或未返回图片',
+              dateTime: formatTime(),
+              status: 'error',
+
+            });
+          }
+        })
+        .finally(() => {
+          setFetchController(null);
+        });
+    } else {
+      // 调用标准聊天API
+      serverChatCompletions({
+        requestOptions,
+        signal,
+        userMessageId,
+        assistantMessageId
+      });
+    }
   }
 
   return (
@@ -269,7 +308,6 @@ ${JSON.stringify(response, null, 4)}
               <Select
                 size="middle"
                 style={{ width: '100%' }}
-                defaultValue={config.model}
                 value={config.model}
                 options={models.map((m) => ({ ...m, label: 'AI模型: ' + m.label }))}
                 onChange={(e) => {
@@ -279,6 +317,7 @@ ${JSON.stringify(response, null, 4)}
                   })
                 }}
               />
+              {/*
               <Button
                 block
                 onClick={() => {
@@ -299,6 +338,7 @@ ${JSON.stringify(response, null, 4)}
               >
                 系统配置
               </Button>
+              */}
               <Popconfirm
                 title="删除全部对话"
                 description="您确定删除全部会话对吗? "
@@ -371,7 +411,7 @@ ${JSON.stringify(response, null, 4)}
         </div>
       </Layout>
 
-      {/* AI角色预设 */}
+      {/* AI角色预设 
       <Modal
         title="AI角色预设"
         open={roleConfigModal.open}
@@ -382,9 +422,10 @@ ${JSON.stringify(response, null, 4)}
         style={{
           top: 50
         }}
-      >
-        <RoleLocal />
-        {/* <Tabs
+      >*
+      <RoleLocal />
+      /}
+      {/* <Tabs
           tabPosition={bodyResize.width <= 600 ? 'top' : 'left'}
           items={[
             {
@@ -398,8 +439,8 @@ ${JSON.stringify(response, null, 4)}
               children: <RoleNetwork />
             }
           ]}
-        /> */}
-      </Modal>
+        /> 
+    </Modal>*/}
     </div>
   )
 }

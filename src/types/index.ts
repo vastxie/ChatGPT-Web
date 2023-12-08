@@ -29,6 +29,7 @@ export interface ResponseLoginData {
 export interface ResponseConfigData {
   shop_introduce: string
   user_introduce: string
+  ai_models: string
   notifications: NotificationInfo[]
 }
 

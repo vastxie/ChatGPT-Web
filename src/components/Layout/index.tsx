@@ -3,6 +3,9 @@ import HeaderRender from '../HeaderRender';
 import { ChatsInfo } from '@/types';
 import React from 'react';
 import { MenuProps } from 'antd';
+import { assert, log } from 'console';
+import { LogoutOutlined } from '@ant-design/icons';
+import logo from '../../assets/logo.svg'
 
 type Props = {
     menuExtraRender?: () => React.ReactNode,
@@ -10,7 +13,7 @@ type Props = {
         path: string,
         routes: Array<ChatsInfo>
     },
-    menuItemRender?:(item: MenuDataItem & {
+    menuItemRender?: (item: MenuDataItem & {
         isUrl: boolean;
         onClick: () => void;
     }, defaultDom: React.ReactNode, menuProps: MenuProps | any) => React.ReactNode | undefined,
@@ -21,11 +24,11 @@ type Props = {
 }
 
 function Layout(props: Props) {
-    const { menuExtraRender = () => <></>, menuItemRender = ()=> undefined } = props;
+    const { menuExtraRender = () => <></>, menuItemRender = () => undefined } = props;
     return (
         <ProLayout
-            title={import.meta.env.VITE_APP_TITLE}
-            logo={import.meta.env.VITE_APP_LOGO}
+            title="ChatWeb"
+            logo={logo}
             layout="mix"
             splitMenus={false}
             contentWidth="Fluid"
@@ -52,7 +55,7 @@ function Layout(props: Props) {
             route={props.route}
             menuDataRender={props.menuDataRender}
             avatarProps={{
-                src: 'https://cdn.jsdelivr.net/gh/duogongneng/testuitc/1682426702646avatarf3db669b024fad66-1930929abe2847093.png',
+                src: '../../assets/header.png',
                 size: 'small',
                 render: (props, dom) => <>{dom}</>
             }}

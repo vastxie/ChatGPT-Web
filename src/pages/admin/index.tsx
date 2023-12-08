@@ -7,6 +7,7 @@ import React, { useState } from 'react'
 import menuList from '@/routers/menu_list'
 import { userStore } from '@/store'
 import OpenAiLogo from '@/components/OpenAiLogo'
+import logo from '../../assets/logo.svg'
 
 function AdminPage() {
   const navigate = useNavigate()
@@ -31,7 +32,7 @@ function AdminPage() {
     <div className={styles.admin}>
       <ProLayout
         title="后台管理系统"
-        logo={import.meta.env.VITE_APP_LOGO}
+        logo={logo}
         layout="mix"
         splitMenus={false}
         contentWidth="Fluid"
@@ -98,10 +99,7 @@ function AdminPage() {
                 textAlign: 'center',
                 paddingBlockStart: 12
               }}
-            >
-              <div>© 2023 Made with love</div>
-              <div>by Chatgpt</div>
-            </div>
+            />
           )
         }}
         menuProps={{

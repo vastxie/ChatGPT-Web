@@ -81,14 +81,15 @@ function AllInput(props: Props) {
           <CloudDownloadOutlined />
         </div>
       )}
-      <div
+      {/*<div
         className={styles.allInput_icon}
         onClick={() => {
           props?.clearMessage?.()
         }}
       >
         <ClearOutlined />
-      </div>
+      </div>*/
+      }
       <AutoComplete
         value={prompt}
         options={searchOptions}
@@ -141,7 +142,7 @@ function AllInput(props: Props) {
             props.onStopFetch?.()
           }}
         >
-          <SyncOutlined spin /> 停止回答 🤚
+          <SyncOutlined spin /> 停止回答
         </Button>
       ) : (
         <Button

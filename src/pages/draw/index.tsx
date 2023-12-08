@@ -27,9 +27,11 @@ function DrawPage() {
   const [drawConfig, setDrawConfig] = useState({
     prompt: '',
     n: 1,
-    size: '256x256',
+    size: '1024x1024',
     response_format: 'url'
   })
+
+  const quickPrompts = ['动漫', '水墨画', '超现实主义', '印象派', '唯美二次元', '抽象画', '中国风', '炫彩插画', '像素艺术'];
 
   const [drawResultData, setDrawResultData] = useState<{
     loading: boolean
@@ -40,7 +42,7 @@ function DrawPage() {
   })
   const handleDraw = (res: ResponseData<Array<{ url: string }>>) => {
     if (res.code || res.data.length <= 0) {
-      message.error('请求错误 🙅')
+      message.error('请求错误')
       return
     }
     setDrawResultData({
@@ -74,6 +76,11 @@ function DrawPage() {
         setDrawResultData((dr) => ({ ...dr, loading: false }))
       })
   }
+
+  // 添加到组件内部
+  const handleQuickPromptClick = (prompt: string) => {
+    setDrawConfig(c => ({ ...c, prompt: `${c.prompt} ${prompt}`.trim() }));
+  };
 
   return (
     <div className={styles.drawPage}>
@@ -112,7 +119,7 @@ function DrawPage() {
                 </div>
                 <Popconfirm
                   title="清除历史绘画"
-                  description="确定清除所有绘画数据吗？"
+                  description="清除所有绘画数据吗？"
                   onConfirm={() => {
                     clearhistoryDrawImages()
                   }}
@@ -142,7 +149,7 @@ function DrawPage() {
           <div className={styles.drawPage_container_two}>
             <div className={styles.drawPage_config}>
               <Space direction="vertical">
-                <p>图片尺寸({drawConfig.size})</p>
+                <p>比例({drawConfig.size})</p>
                 <Radio.Group
                   buttonStyle="solid"
                   defaultValue={drawConfig.size}
@@ -151,21 +158,31 @@ function DrawPage() {
                     setDrawConfig((c) => ({ ...c, size: e.target.value }))
                   }}
                 >
-                  <Radio.Button value={'256x256'}>256x256</Radio.Button>
-                  <Radio.Button value={'512x512'}>512x512</Radio.Button>
-                  <Radio.Button value={'1024x1024'}>1024x1024</Radio.Button>
+                  <Radio.Button value={'1024x1024'}>方形</Radio.Button>
+                  <Radio.Button value={'1792x1024'}>横向</Radio.Button>
+                  <Radio.Button value={'1024x1792'}>竖向</Radio.Button>
                 </Radio.Group>
-                <p>图片数量({drawConfig.n}张)</p>
+                <p>图片类型</p>
+                <div className={styles.drawPage_quickPrompts}>
+                  <Space direction="horizontal" wrap>
+                    {quickPrompts.map(prompt => (
+                      <Button key={prompt} onClick={() => handleQuickPromptClick(prompt)}>
+                        {prompt}
+                      </Button>
+                    ))}
+                  </Space>
+                </div>
               </Space>
-              <Slider
+
+              {/*<Slider
                 defaultValue={drawConfig.n}
                 value={drawConfig.n}
                 min={1}
-                max={10}
+                max={4}
                 onChange={(e) => {
                   setDrawConfig((c) => ({ ...c, n: e }))
                 }}
-              />
+              />*/}
               {/* <Button
                 block
                 type="dashed"
@@ -178,10 +195,16 @@ function DrawPage() {
               >
                 系统配置
               </Button> */}
+
+
+
+
+
             </div>
+
             <Input.Search
               value={drawConfig.prompt}
-              placeholder="请输入修饰词"
+              placeholder="请输入绘画提示词"
               allowClear
               enterButton={drawResultData.loading ? '绘制中...' : '开始绘制'}
               size="large"

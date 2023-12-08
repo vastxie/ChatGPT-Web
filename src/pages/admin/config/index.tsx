@@ -24,17 +24,22 @@ function ConfigPage() {
     history_message_count: number | string
   }>()
 
-  const [aiRatioForm] = Form.useForm<{
-    ai3_ratio: number | string
-    ai4_ratio: number | string
-  }>()
-
   const [drawUsePriceForm] = Form.useForm<{
     draw_use_price: Array<{
       size: string
       integral: number
     }>
   }>()
+
+  const [modelsForm] = Form.useForm<{
+    ai_models: Array<{
+      name: string
+      param: string
+      cost: number
+      maxtokens: number
+    }>
+  }>()
+
 
   function getConfigValue(key: string, data: Array<ConfigInfo>) {
     const value = data.filter((c) => c.name === key)[0]
@@ -45,8 +50,7 @@ function ConfigPage() {
     const registerRewardInfo = getConfigValue('register_reward', data)
     const signinRewardInfo = getConfigValue('signin_reward', data)
     const historyMessageCountInfo = getConfigValue('history_message_count', data)
-    const ai3Ratio = getConfigValue('ai3_ratio', data)
-    const ai4Ratio = getConfigValue('ai4_ratio', data)
+    const chatModels = getConfigValue('ai_models', data);
     const drawUsePrice = getConfigValue('draw_use_price', data)
     rewardForm.setFieldsValue({
       register_reward: registerRewardInfo.value,
@@ -55,37 +59,16 @@ function ConfigPage() {
     historyMessageForm.setFieldsValue({
       history_message_count: Number(historyMessageCountInfo.value)
     })
-    aiRatioForm.setFieldsValue({
-      ai3_ratio: Number(ai3Ratio.value),
-      ai4_ratio: Number(ai4Ratio.value)
-    })
+    if (chatModels && chatModels.value) {
+      modelsForm.setFieldsValue({
+        ai_models: JSON.parse(chatModels.value)
+      })
+    }
     if (drawUsePrice && drawUsePrice.value) {
       drawUsePriceForm.setFieldsValue({
         draw_use_price: JSON.parse(drawUsePrice.value)
       })
     }
-    // else {
-    //   const drawUsePriceInitData = {
-    //     draw_use_price: [
-    //       {
-    //         size: '256x256',
-    //         integral: 80
-    //       },
-    //       {
-    //         size: '512x512',
-    //         integral: 90
-    //       },
-    //       {
-    //         size: '1024x1024',
-    //         integral: 100
-    //       }
-    //     ]
-    //   }
-    //   drawUsePriceForm.setFieldsValue(drawUsePriceInitData)
-    //   onSave({
-    //     draw_use_price: JSON.stringify(drawUsePriceInitData.draw_use_price)
-    //   })
-    // }
   }
 
   function onGetConfig() {
@@ -123,7 +106,7 @@ function ConfigPage() {
         }}
       >
         <div className={styles.config_form}>
-          <h3>奖励激励</h3>
+          <h3>注册签到</h3>
           <QueryFilter
             form={rewardForm}
             onFinish={async (values: any) => {
@@ -189,43 +172,82 @@ function ConfigPage() {
           </QueryFilter>
         </div>
         <div className={styles.config_form}>
-          <h3>对话积分</h3>
-          <p>
-            设置一次对话消耗几积分
-          </p>
-          <QueryFilter
-            form={aiRatioForm}
-            onFinish={onSave}
+          <h3>模型设置</h3>
+          <ProForm
+            form={modelsForm}
+            onFinish={(values) => {
+              values.ai_models = JSON.stringify(values.ai_models) as any
+              return onSave(values)
+            }}
             onReset={() => {
               onRewardFormSet(configs)
             }}
             size="large"
-            collapsed={false}
-            defaultCollapsed={false}
             requiredMark={false}
-            defaultColsNumber={79}
-            searchText="保存"
-            resetText="恢复"
+            isKeyPressSubmit={false}
+            submitter={{
+              searchConfig: {
+                submitText: '保存',
+                resetText: '恢复'
+              }
+            }}
           >
-            <ProFormDigit
-              name="ai3_ratio"
-              label="GPT3"
-              tooltip="每次对话消耗多少积分"
-              min={0}
-              max={100000}
-            />
-            <ProFormDigit
-              name="ai4_ratio"
-              label="GPT4"
-              tooltip="每次对话消耗多少积分"
-              min={0}
-              max={100000}
-            />
-          </QueryFilter>
+            <ProFormList
+              creatorButtonProps={{
+                creatorButtonText: '添加模型'
+              }}
+              name="ai_models"
+              min={1}
+              max={50}
+            >
+              <ProFormGroup key="group">
+                <ProFormText
+                  name="name"
+                  label="模型名称"
+                  rules={[
+                    {
+                      required: true
+                    }
+                  ]}
+                />
+                <ProFormText
+                  name="param"
+                  label="模型参数"
+                  rules={[
+                    {
+                      required: true
+                    }
+                  ]}
+                />
+                <ProFormDigit
+                  name="cost"
+                  label="积分消耗"
+                  min={0}
+                  max={100000}
+                  rules={[
+                    {
+                      required: true
+                    }
+                  ]}
+                />
+                <ProFormDigit
+                  name="maxtokens"
+                  label="最大Tokens数"
+                  min={0}
+                  max={1000000}
+                  rules={[
+                    {
+                      required: false
+                    }
+                  ]}
+                />
+              </ProFormGroup>
+            </ProFormList>
+          </ProForm>
         </div>
         <div className={styles.config_form}>
           <h3>绘画积分扣除设置</h3>
-          <p>分为三个规格 256x256 512x512 1024x1024 请分别设置, 如为设置则不扣除积分。</p>
+          <p>分为三个规格 1024x1024 1792x1024 1024x1792 请分别设置, 如未设置则不扣除积分。</p>
           <ProForm
             form={drawUsePriceForm}
             onFinish={(values) => {

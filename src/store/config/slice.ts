@@ -20,7 +20,7 @@ export interface ConfigState {
   notifications: Array<NotificationInfo>
   shop_introduce: string
   user_introduce: string
-  replaceData: (config: { [key: string]: any }) => void
+  replaceData: (data: { [key: string]: any }) => void
 }
 
 const configStore = create<ConfigState>()(
@@ -31,16 +31,13 @@ const configStore = create<ConfigState>()(
       shop_introduce: '',
       user_introduce: '',
       models: [
+        // 初始模型数据
         {
-          label: 'GPT-3.5',
+          label: '默认',
           value: 'gpt-3.5-turbo'
         },
         {
-          label: 'GPT-3.5-turbo-16k',
-          value: 'gpt-3.5-turbo-16k'
-        },
-        {
-          label: 'GPT-4',
+          label: '高级',
           value: 'gpt-4'
         }
       ],
@@ -56,11 +53,29 @@ const configStore = create<ConfigState>()(
         set((state: ConfigState) => ({
           config: { ...state.config, ...config }
         })),
-      replaceData: (data) => set((state: ConfigState) => ({ ...state, ...data }))
+      replaceData: (data) => {
+        set((state: ConfigState) => {
+          if (data.ai_models) {
+            // 将JSON字符串解析为对象数组
+            const aiModelsParsed = JSON.parse(data.ai_models);
+
+            // 使用解析后的数据更新models
+            const newModels = aiModelsParsed.map((model: { name: any; param: any }) => ({
+              label: model.name,
+              value: model.param
+            }));
+
+            return { ...state, models: newModels };
+          } else {
+            // 如果没有ai_models或无法解析，保持原来的状态
+            return { ...state, ...data };
+          }
+        });
+      }
     }),
     {
-      name: 'config_storage', // name of item in the storage (must be unique)
-      storage: createJSONStorage(() => localStorage) // (optional) by default the 'localStorage' is used
+      name: 'config_storage', // 存储项的名称（必须唯一）
+      storage: createJSONStorage(() => localStorage) // 使用localStorage作为存储介质
     }
   )
 )
