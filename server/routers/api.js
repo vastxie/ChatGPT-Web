@@ -15,6 +15,11 @@ const queue_1 = require('../helpers/queue');
 const alipay_1 = tslib_1.__importDefault(require('../helpers/alipay'));
 const yipay_1 = tslib_1.__importDefault(require('../helpers/yipay'));
 const router = express_1.default.Router();
+const COS = require('cos-nodejs-sdk-v5');
+const multer = require('multer');
+const storage = multer.memoryStorage();
+const upload = multer({ storage: storage });
+
 router.get('/config', async (req, res, next) => {
     const shop_introduce = await models_1.configModel.getConfig('shop_introduce');
     const user_introduce = await models_1.configModel.getConfig('user_introduce');
@@ -30,6 +35,7 @@ router.get('/config', async (req, res, next) => {
         notifications: notifications
     }));
 });
+
 // 发送验证码
 router.get('/send_sms', async (req, res) => {
     const source = Array.isArray(req.query.source)
@@ -325,15 +331,12 @@ router.post('/chat/completions', async (req, res) => {
         id: user_id
     });
     const ip = (0, utils_1.getClientIP)(req);
-    const { prompt, parentMessageId } = req.body;
-    // 提前从 req.body.options 中取出 model 的值
+    const { prompt, parentMessageId, imageURL } = req.body;
+    console.log(`Request body parameters - Prompt: ${prompt}, ParentMessageId: ${parentMessageId}, ImageURL: ${imageURL}`);
+
     const model = req.body.options?.model;
     const models_list_str = await models_1.configModel.getConfig('ai_models') || '[]';
-
-    // 解析字符串为对象数组
     const models_list = JSON.parse(models_list_str);
-
-    // 在这里添加代码以查找并保存 cost
     let model_cost;
     let model_maxtokens;
     if (models_list && models_list.length > 0) {
@@ -350,7 +353,6 @@ router.post('/chat/completions', async (req, res) => {
         max_tokens: model_maxtokens
     };
 
-
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
@@ -359,9 +361,8 @@ router.post('/chat/completions', async (req, res) => {
         return;
     }
 
-    const historyMessageCount = await models_1.configModel.getConfig('history_message_count');
+    let userMessage = [{ role: 'user', content: prompt }];
 
-    let userMessage = prompt;
     let userMessageTokens = new GPTTokens({
         model: "gpt-3.5-turbo",
         messages: [{ role: 'user', content: userMessage }]
@@ -373,20 +374,44 @@ router.post('/chat/completions', async (req, res) => {
         return;
     }
 
-    // 获取历史消息
+    // 首先构建当前消息
+    let currentMessage;
+    if (model === 'gpt-4-vision-preview' && imageURL) {
+        // 当使用 gpt-4-vision-preview 模型时，当前消息包括文本和图片
+        currentMessage = {
+            role: "user",
+            content: [
+                {
+                    type: "text",
+                    text: prompt
+                },
+                {
+                    type: "image_url",
+                    image_url: {
+                        url: imageURL
+                    }
+                }
+            ]
+        };
+    } else {
+        // 其他模型时，当前消息只包括文本
+        currentMessage = { role: 'user', content: prompt };
+    }
+
+    const historyMessageCount = await models_1.configModel.getConfig('history_message_count');
+    console.log(`Retrieved history message count: ${historyMessageCount}`);
     const historyMessagesData = await models_1.messageModel.getMessages({ page: 0, page_size: Number(historyMessageCount) }, {
         parent_message_id: parentMessageId
     });
+    console.log(`Retrieved ${historyMessagesData.rows.length} history messages.`);
 
     let historyMessages = historyMessagesData.rows.map(item => ({
         role: item.toJSON().role,
         content: item.toJSON().content
     })).reverse();
 
-    // 将用户消息添加到历史消息数组中
-    historyMessages.push({ role: 'user', content: userMessage });
+    historyMessages.push(currentMessage);
 
-    // 检查总的 Token 数量
     let totalTokens = new GPTTokens({
         model: "gpt-3.5-turbo",
         messages: historyMessages
@@ -406,13 +431,15 @@ router.post('/chat/completions', async (req, res) => {
     queue_1.checkTokenQueue.addTask({
         ...tokenInfo
     });
+
     const chat = await (0, node_fetch_1.default)(`${tokenInfo.host}/v1/chat/completions`, {
         method: 'POST',
         body: JSON.stringify({
             model: options.model,
             temperature: 0.8,
             messages: historyMessages,
-            stream: true
+            max_tokens: options.max_tokens,
+            stream: true,
         }),
         headers: {
             'Content-Type': 'application/json',
@@ -861,9 +888,65 @@ router.all('/pay/notify', async (req, res, next) => {
         }
     }
     catch (error) {
-        console.log(error);
     }
     res.json('success');
 });
+
+// 上传图片
+router.post('/upload/image', upload.single('file'), async (req, res) => {
+    const cosSettingStr = await models_1.configModel.getConfig('cos_settings');
+    // 验证配置存在性
+    if (!cosSettingStr) {
+        return res.status(400).send('上传失败');
+    }
+
+    // 尝试解析配置字符串为对象
+    let cosSetting;
+    try {
+        cosSetting = JSON.parse(cosSettingStr);
+    } catch (error) {
+        return res.status(400).send('上传失败');
+    }
+
+    // 检查配置类型
+    if (cosSetting.imageHostingType !== 'tencent') {
+        return res.status(400).send('上传失败');
+    }
+
+    // 检查文件存在性
+    if (!req.file) {
+        return res.status(400).send('上传失败');
+    }
+
+    // 获取上传的文件
+    const file = req.file;
+
+    // 定义上传到 COS 的参数
+    const params = {
+        Bucket: cosSetting.bucketName,
+        Region: cosSetting.region,
+        Key: `images/${Date.now()}-${file.originalname}`,
+        Body: file.buffer,
+        ContentLength: file.size
+    };
+
+    // 创建 COS 实例
+    const cos = new COS({
+        SecretId: cosSetting.secretId,
+        SecretKey: cosSetting.secretKey
+    });
+
+    // 上传文件到 COS
+    cos.putObject(params, function (err, data) {
+        if (err) {
+            res.status(400).send('上传失败');
+        } else {
+            // 返回文件的 URL
+            const url = `https://${cosSetting.accelerateDomain}/${params.Key}`;
+            res.json({ code: 0, data: { url }, message: '上传成功' });
+        }
+    });
+});
+
 exports.default = router;
 //# sourceMappingURL=api.js.map

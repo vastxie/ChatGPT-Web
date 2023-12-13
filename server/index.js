@@ -21,8 +21,8 @@ app.use(verify_1.default);
 (0, db_1.default)();
 // 获取静态目录
 app.use(express_1.default.static(path_1.default.join(__dirname, '../dist')))
-app.use(express_1.default.json());
-app.use(express_1.default.urlencoded({ extended: false }));
+app.use(express_1.default.json({ limit: '10mb' }));
+app.use(express_1.default.urlencoded({ extended: false, limit: '10mb' }));
 // 初始化路由
 (0, routers_1.default)(app);
 // 系统级别的定时任务

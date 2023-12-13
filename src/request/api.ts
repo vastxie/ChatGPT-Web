@@ -7,13 +7,10 @@ import {
   ResponseConfigData,
   ResponseLoginData,
   SigninInfo,
-  SubscriptionInfo,
   TurnoverInfo,
   UserInfo
 } from '@/types'
 import request from '.'
-import { formatTime } from '@/utils'
-import { TableData } from '@/types/admin'
 
 // 获取验证码
 export function getCode(params: { source: string }) {
@@ -57,9 +54,9 @@ export function postImagesGenerations(
 
 // 获取商品列表
 export function getProduct() {
-  return request.get< {
-	products: Array<ProductInfo>,
-	pay_types: Array<string>
+  return request.get<{
+    products: Array<ProductInfo>,
+    pay_types: Array<string>
   }>('/api/product')
 }
 
@@ -100,5 +97,14 @@ export function putUserPassword(params: RequestLoginParams) {
 
 // 获取配置数据
 export function getConfig() {
-	return request.get<ResponseConfigData>('/api/config')
-  }
+  return request.get<ResponseConfigData>('/api/config')
+}
+
+export function postUploadImage(
+  file: File, // 直接接收 File 类型的参数
+  options?: { [key: string]: any }
+) {
+  const formData = new FormData();
+  formData.append('file', file); // 'file' 应与服务器端 multer 配置一致
+  return request.post<{ url: string }>('/api/upload/image', formData, options)
+}

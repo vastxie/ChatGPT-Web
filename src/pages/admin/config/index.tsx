@@ -3,6 +3,7 @@ import {
   ProFormDigit,
   ProFormGroup,
   ProFormList,
+  ProFormSelect,
   ProFormText,
   QueryFilter
 } from '@ant-design/pro-components'
@@ -40,6 +41,17 @@ function ConfigPage() {
     }>
   }>()
 
+  const [cosSettingsForm] = Form.useForm<{
+    cos_settings: Array<{
+      imageHostingType: string
+      secretId: string
+      secretKey: string
+      bucketName: string
+      region: string
+      accelerateDomain: string
+    }>
+  }>()
+
 
   function getConfigValue(key: string, data: Array<ConfigInfo>) {
     const value = data.filter((c) => c.name === key)[0]
@@ -52,6 +64,7 @@ function ConfigPage() {
     const historyMessageCountInfo = getConfigValue('history_message_count', data)
     const chatModels = getConfigValue('ai_models', data);
     const drawUsePrice = getConfigValue('draw_use_price', data)
+    const cosSettings = getConfigValue('cos_settings', data)
     rewardForm.setFieldsValue({
       register_reward: registerRewardInfo.value,
       signin_reward: signinRewardInfo.value
@@ -64,11 +77,17 @@ function ConfigPage() {
         ai_models: JSON.parse(chatModels.value)
       })
     }
+    if (cosSettings && cosSettings.value) {
+      cosSettingsForm.setFieldsValue({
+        cos_settings: JSON.parse(cosSettings.value)
+      })
+    }
     if (drawUsePrice && drawUsePrice.value) {
       drawUsePriceForm.setFieldsValue({
         draw_use_price: JSON.parse(drawUsePrice.value)
       })
     }
+
   }
 
   function onGetConfig() {
@@ -167,7 +186,7 @@ function ConfigPage() {
               label="携带数量"
               tooltip="会话上下文携带对话数量"
               min={1}
-              max={100000}
+              max={30}
             />
           </QueryFilter>
         </div>
@@ -247,7 +266,6 @@ function ConfigPage() {
         </div>
         <div className={styles.config_form}>
           <h3>绘画积分扣除设置</h3>
-          <p>分为三个规格 1024x1024 1792x1024 1024x1792 请分别设置, 如未设置则不扣除积分。</p>
           <ProForm
             form={drawUsePriceForm}
             onFinish={(values) => {
@@ -272,13 +290,14 @@ function ConfigPage() {
                 creatorButtonText: '添加绘画规格扣除项'
               }}
               name="draw_use_price"
-              min={1}
+              min={3}
               max={3}
             >
               <ProFormGroup key="group">
                 <ProFormText
                   name="size"
                   label="规格大小"
+                  readonly
                   rules={[
                     {
                       required: true
@@ -298,6 +317,84 @@ function ConfigPage() {
                 />
               </ProFormGroup>
             </ProFormList>
+          </ProForm>
+        </div>
+        <div className={styles.config_form}>
+          <h3>存储配置</h3>
+          <p>暂时只支持腾讯云 COS</p>
+          <ProForm
+            form={cosSettingsForm}
+            onFinish={(values) => {
+              values.cos_settings = JSON.stringify(values.cos_settings) as any
+              return onSave(values)
+            }}
+            onReset={() => {
+              onRewardFormSet(configs)
+            }}
+            size="large"
+            requiredMark={false}
+            isKeyPressSubmit={false}
+            submitter={{
+              searchConfig: {
+                submitText: '保存',
+                resetText: '恢复'
+              }
+            }}
+          >
+            <ProFormGroup>
+              <ProFormSelect
+                name={['cos_settings', 'imageHostingType']}
+                label="图床类型"
+                options={[
+                  { value: 'tencent', label: '腾讯云' },
+                ]}
+                rules={[{ required: true, message: '请选择图床类型' }]}
+              />
+              <ProFormText
+                name={['cos_settings', 'secretId']}
+                label="SecretId"
+                rules={[
+                  {
+                    required: true,
+                    message: '请输入SecretId'
+                  }
+                ]}
+              />
+              <ProFormText.Password
+                name={['cos_settings', 'secretKey']}
+                label="SecretKey"
+                rules={[
+                  {
+                    required: true,
+                    message: '请输入SecretKey'
+                  }
+                ]}
+              />
+              <ProFormText
+                name={['cos_settings', 'bucketName']}
+                label="存储桶名称"
+                rules={[
+                  {
+                    required: true,
+                    message: '请输入存储桶名称'
+                  }
+                ]}
+              />
+              <ProFormText
+                name={['cos_settings', 'region']}
+                label="所属地域"
+                rules={[
+                  {
+                    required: true,
+                    message: '请选择所属地域'
+                  }
+                ]}
+              />
+              <ProFormText
+                name={['cos_settings', 'accelerateDomain']}
+                label="全球加速域名"
+              />
+            </ProFormGroup>
           </ProForm>
         </div>
       </Space>

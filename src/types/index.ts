@@ -46,10 +46,12 @@ export interface ChatGptConfig {
   presence_penalty?: number
   // 惩罚频率 -2 - 2
   frequency_penalty?: number
-  // 携带历史消息数
-  // limit_message?: number
   // 单次回复限制
   max_tokens?: number
+  // 绘画尺寸
+  size?: string
+  // 上传的文件
+  imageURL?: string;
 }
 
 export interface PromptInfo {
@@ -61,6 +63,7 @@ export interface RequestChatOptions {
   prompt: string
   options?: Omit<ChatGptConfig, 'api' | 'api_key'>
   parentMessageId?: string
+
 }
 
 // 请求Openai 或者 其他代理
@@ -101,9 +104,12 @@ export interface ChatGpt {
   id: string | number
   text: string
   dateTime: string
+  isImage?: boolean;
+  imageUrl?: string;
   status: 'pass' | 'loading' | 'error'
   role: 'assistant' | 'user' | string
   requestOptions: RequestChatOptions
+  uploadedImageUrl?: string
 }
 
 export interface RequestImagesGenerations {

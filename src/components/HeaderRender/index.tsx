@@ -129,18 +129,11 @@ function HeaderRender(props: HeaderViewProps, defaultDom: React.ReactNode) {
                   justifyContent: 'center'
                 }}
               >
-                <Avatar src={user_info?.avatar} />
-                {!props.isMobile && (
-                  <span
-                    style={{
-                      fontSize: 14,
-                      color: '#999',
-                      marginLeft: 4
-                    }}
-                  >
-                    {getEmailPre(user_info?.account)}
-                  </span>
-                )}
+                <Avatar
+                  icon={<UserOutlined />}
+                  size="small"
+                  style={{ backgroundColor: '#19c37d' }}
+                />
               </div>
             </Dropdown>
             <div
@@ -149,7 +142,7 @@ function HeaderRender(props: HeaderViewProps, defaultDom: React.ReactNode) {
                 onRefreshBalance()
               }}
             >
-              <p>余额：{balance.number}</p> <SyncOutlined spin={balance.loading} />
+              <p>积分：{balance.number}</p> <SyncOutlined spin={balance.loading} />
             </div>
           </div>
         ) : (

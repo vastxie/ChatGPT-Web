@@ -4,7 +4,7 @@ import { ChatsInfo } from '@/types';
 import React from 'react';
 import { MenuProps } from 'antd';
 import { assert, log } from 'console';
-import { LogoutOutlined } from '@ant-design/icons';
+import { UserOutlined } from '@ant-design/icons';
 import logo from '../../assets/logo.svg'
 
 type Props = {
@@ -55,9 +55,9 @@ function Layout(props: Props) {
             route={props.route}
             menuDataRender={props.menuDataRender}
             avatarProps={{
-                src: '../../assets/header.png',
+                icon: <UserOutlined />,
                 size: 'small',
-                render: (props, dom) => <>{dom}</>
+                style: { backgroundColor: '#19c37d' },
             }}
             menuFooterRender={props.menuFooterRender}
             menuProps={props.menuProps}
