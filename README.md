@@ -45,6 +45,10 @@ yarn build
 pm2 start
 ```
 
+
+
+
+
 新建一个网站，ssl 验证后，反向代理 `http://127.0.0.1:3200`
 
 - 后台地址：https://网站域名/admin
