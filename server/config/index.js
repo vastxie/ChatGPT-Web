@@ -7,9 +7,9 @@ function getConfig(key) {
 		port: 3200,  // 端口号，确保没有被占用
 		mysql_config: {  // MySQL配置信息
 			dialect: 'mysql',
-			// MySQL 数据库主机地址，docker 部署无需修改，本地部署需修改成 127.0.0.1
-			host: 'mysql',  
-			//host：'127.0.0.1',
+			// MySQL 数据库主机地址，docker 部署使用 mysql，本机部署使用 127.0.0.1
+			//host: 'mysql',  
+			host: '127.0.0.1',
 			port: 3306,  // 数据库端口号，默认3306
 			username: 'chatgpt',  // 数据库用户名
 			password: 'chatgpt',  // 数据库密码
@@ -22,9 +22,9 @@ function getConfig(key) {
 		},
 		redis_config: {  // Redis配置信息，一般不用改
 			type: 'redis',
-			// Redis 主机地址，docker 部署无需修改，本地部署需修改成 127.0.0.1
-			host: 'redis',
-			//host：'127.0.0.1',
+			// Redis 主机地址，docker 部署使用 redis，本机部署使用 127.0.0.1
+			//host: 'redis',
+			host: '127.0.0.1',
 			port: 6379,
 			password: ''
 		},
