@@ -9,7 +9,7 @@ function getConfig(key) {
 			dialect: 'mysql',
 			// MySQL 数据库主机地址，docker 部署无需修改，本地部署需修改成 127.0.0.1
 			host: 'mysql',  
-			//host：'127.0.0.1' 
+			//host：'127.0.0.1',
 			port: 3306,  // 数据库端口号，默认3306
 			username: 'chatgpt',  // 数据库用户名
 			password: 'chatgpt',  // 数据库密码
